@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="F:\!work\tiff-4.6.0\contrib\dbs\tiff-grayscale.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="F:\!work\tiff-4.6.0\contrib\dbs\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{DDD188B8-0F86-3FCC-869D-CBF4D874E297}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
