@@ -299,59 +299,68 @@ double calcRMS(QVector<double>& R){
 
 //наложение двух изображений
 void MainWindow::transformImages(GeoImage& img1, GeoImage& img2, const QString& img1name, const QString& img2name, double H){
-    if (img1.originMatrix.getColorsCount() == 1){
-        try{
-            progress->start("Наложение двух изображений: ");
+    if (img1.originMatrix.getColorsCount() != 1){
+        QMessageBox::critical(this, "Ошибка!", "Поддержка трехканальных изображений не осуществляется!");
+        return;
+    }
+    try{
+        progress->start("Наложение двух изображений: ");
 
-            RasterMatrix<uint16_t> resImg = img1.originMatrix;
-            double per = 0;
-            double length = img1.originMatrix.getRow();
-            for (int i = 0; i < img1.originMatrix.getRow(); i++){
-                for (int j = 0; j < img1.originMatrix.getColumn(); j++){
-                    double B = 0;
-                    double L = 0;
-                    int k = 0;
-                    img1.rpc.planar2geo(j + 0.5, i + 0.5, H, B, L, k);
-                    double x, y;
-                    img2.rpc.geo2planar(B, L, H, y, x);
-                    if ((x < img2.originMatrix.getColumn()) && (y < img2.originMatrix.getRow())
-                           && (x >= 0) && (y >= 0)){
-                        uint16_t res = 0;
-                        bool isNotNullPix = BLinterpolation<uint16_t>(img2.originMatrix, x, y, res);
-                        if (isNotNullPix){
-                            resImg[i][j] = res;
-                        }
-                    }
-                }
-                per = i / (double)(length) * 100;
-                if (progress->set_progress(per)){
-                    progress->stop();
+        RasterMatrix<uint16_t> resImg = img1.originMatrix;
+        double per = 0;
+        double length = img1.originMatrix.getRow();
+
+        for (int i = 0; i < img1.originMatrix.getRow(); i++){
+//            std::cout << progress->wasProcessStopped << std::endl;
+//            QCoreApplication::processEvents();
+
+            for (int j = 0; j < img1.originMatrix.getColumn(); j++){
+
+                if (progress->wasProcessStopped || progress->wasProcessStoppedByUser){
                     return;
                 }
+
+                double B = 0;
+                double L = 0;
+                int k = 0;
+                img1.rpc.planar2geo(j + 0.5, i + 0.5, H, B, L, k);
+                double x, y;
+                img2.rpc.geo2planar(B, L, H, y, x);
+                if ((x < img2.originMatrix.getColumn()) && (y < img2.originMatrix.getRow())
+                       && (x >= 0) && (y >= 0)){
+                    uint16_t res = 0;
+                    bool isNotNullPix = BLinterpolation<uint16_t>(img2.originMatrix, x, y, res);
+                    if (isNotNullPix){
+                        resImg[i][j] = res;
+                    }
+                }
             }
-
-            progress->stop();
-
-            GeoImage img(progress);
-            int err = img.loadFromMatr(resImg);
-            if (err == 0){
-                img.rpc = img1.rpc;
-                addWindow(img, "Изображение " + img2name + ", наложенное на изображение" + img1name);
-            } else if (err == -2){
-                QMessageBox::critical(this, "Ошибка!", img.brightnessErr);
-            } else {
-                QMessageBox::critical(this, "Ошибка!", "Не удалось наложить изображения!");
+            per = i / (double)(length) * 100;
+            if (progress->set_progress(per)){
+                progress->stop();
+                return;
             }
-
-        } catch (const std::runtime_error& e){
-            printToConsole(QString("Ошибка в процессе наложения изображений!") + QString(e.what()));
-//            std::cout << "Error in transform images process! " << e.what() << std::endl;
-            return;
         }
 
-    } else {    //colorsCount == 3
-        QMessageBox::critical(this, "Ошибка!", "Поддержка трехканальных изображений не осуществляется!");
+        progress->stop();
+
+        GeoImage img(progress);
+        int err = img.loadFromMatr(resImg);
+        if (err == 0){
+            img.rpc = img1.rpc;
+            addWindow(img, "Изображение " + img2name + ", наложенное на изображение" + img1name);
+        } else if (err == -2){
+            QMessageBox::critical(this, "Ошибка!", img.brightnessErr);
+        } else {
+            QMessageBox::critical(this, "Ошибка!", "Не удалось наложить изображения!");
+        }
+
+    } catch (const std::runtime_error& e){
+        printToConsole(QString("Ошибка в процессе наложения изображений!") + QString(e.what()));
+//            std::cout << "Error in transform images process! " << e.what() << std::endl;
+        return;
     }
+
 }
 
 //установка изображения в окно

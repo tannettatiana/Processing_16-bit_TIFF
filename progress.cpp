@@ -68,7 +68,7 @@ void Progress::start(const QString& progressName){
         lbProgressName->setText(progressName);
         printToConsole(progressName);
         lbProgressPercent->setText("0.0%");
-        QCoreApplication::processEvents();
+//        QCoreApplication::processEvents();
         timeStart = std::chrono::system_clock::now();
     }
 }
@@ -100,6 +100,7 @@ bool Progress::set_progress(const double percent){
         printToConsole(QString("Прогресс: %1%").arg(percent, 2,'f', 1,'0'));
 //        std::cout << "\r Progress: " << percent << "%";
 //        std::cout.flush();
+        //QCoreApplication::processEvents();
         return wasProcessStoppedByUser;
     }
 }
